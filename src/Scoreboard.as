@@ -25,12 +25,14 @@ enum TeamColor {
 class TeamScoreboard {
 
     private array<uint> scores;
+    private array<uint> points;
     private array<string> names;
     private TeamColor winning;
 
     TeamScoreboard(const string &in blueName, const string &in redName) {
         this.names.Resize(2);
         this.scores.Resize(2);
+        this.points.Resize(2);
         this.winning = TeamColor::NONE;
         this.setName(TeamColor::BLUE, blueName);
         this.setName(TeamColor::RED, redName);
@@ -42,25 +44,39 @@ class TeamScoreboard {
     }
 
     void reset() {
-        this.scores[TeamColor::BLUE] = 0;
-        this.scores[TeamColor::RED] = 0;
+        this.setPoints(0, 0);
+        this.setScores(0, 0);
     }
 
-    void setWinning(const TeamColor color) {
-        this.winning = color;
+    void updateWinning() {
+        if (this.points[TeamColor::BLUE] > this.points[TeamColor::RED]) {
+            this.winning = TeamColor::BLUE;
+        } else if (points[TeamColor::BLUE] < points[TeamColor::RED]) {
+            this.winning = TeamColor::RED;
+        } else {
+            this.winning = TeamColor::NONE;
+        }
     }
 
     void setName(const TeamColor color, const string &in name) {
         this.names[color] = name.ToUpper().SubStr(0, MAX_NAME_LEN);
     }
 
-    void setScore(const TeamColor color, uint score) {
-        this.scores[color] = score;
+    void setScores(uint blueScore, uint redScore) {
+        this.scores[TeamColor::BLUE] = blueScore;
+        this.scores[TeamColor::RED] = redScore;
     }
 
-    void draw() {
+    void setPoints(uint bluePoints, uint redPoints) {
+        this.points[TeamColor::BLUE] = bluePoints;
+        this.points[TeamColor::RED] = redPoints;
+        this.updateWinning();
+    }
+
+    void draw(bool withPoints) {
         // we scale stuff targetting X_SIZExY_SIZE on 1080p window
         int wWidth = Draw::GetWidth();
+        float screenMiddle = wWidth / 2.0;
         float scaling = uiScaling * Draw::GetHeight() / 1080.0;
         vec2 size = vec2(X_SIZE * scaling, Y_SIZE * scaling);
         vec2 colorSize = vec2(size.x / 2 - PADDING, size.y - PADDING);
@@ -71,7 +87,7 @@ class TeamScoreboard {
         // winning indicator
         if (this.winning != TeamColor::NONE) {
             DrawHalfRoundedRectangle(
-                this.winning == TeamColor::BLUE ? xpos : wWidth / 2,
+                this.winning == TeamColor::BLUE ? xpos : screenMiddle,
                 0,
                 size.x / 2,
                 size.y,
@@ -97,6 +113,29 @@ class TeamScoreboard {
         }
         if (this.names[TeamColor::RED] != "") {
             DrawTextBox(this.names[TeamColor::RED], redXpos, 5, colorSize.x, teamTextSize, DEFINITELY_WHITE);
+        }
+        // write team points if enabled
+        if (withPoints && this.points[0] + this.points[1] > 0) {
+            vec2 pointsSize = vec2(50 * scaling, 80 * scaling);
+            float pointsFont = 16 * scaling;
+            DrawTextBox(
+                Text::Format("(%d)", this.points[TeamColor::BLUE]),
+                screenMiddle - pointsSize.x,
+                pointsSize.y,
+                pointsSize.x,
+                pointsFont,
+                DEFINITELY_WHITE,
+                true
+            );
+            DrawTextBox(
+                Text::Format("(%d)", this.points[TeamColor::RED]),
+                screenMiddle,
+                pointsSize.y,
+                pointsSize.x,
+                pointsFont,
+                DEFINITELY_WHITE,
+                true
+            );
         }
     }
 

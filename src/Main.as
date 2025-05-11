@@ -10,6 +10,8 @@ string redTeamName = "";
 string customPointRepartition = "";
 [Setting name="UI Scale" description="Adjust size of the scoreboard" category="General" min=0.1 max=3.0]
 float uiScaling = 1.0;
+[Setting name="Show Round Points" description="Shows sum of current round points" category="General"]
+bool showRoundPoints = false;
 [Setting name="Polling Rate Milliseconds" description="How often the plugin checks for players positions" category="General" min=500]
 int dataPollingRateMs = 1000;
 
@@ -17,21 +19,21 @@ int dataPollingRateMs = 1000;
 string currentMap = "";
 array<uint> pointRepartition;
 TeamScoreboard@ scoreboard;
+bool justFinished = true;
 
 
 void Render() {
     if (scoreboard is null) return;
     auto app = cast<CTrackMania>(GetApp());
     if (!(UI::IsGameUIVisible() && IsInGame(app) && IsTeamsMode(app))) return;
-    scoreboard.draw();
+    scoreboard.draw(showRoundPoints);
 }
 
 
 void loadScores() {
     auto mmdata = MLFeed::GetTeamsMMData_V1();
     if (mmdata is null || mmdata.ClanScores.Length < 3) return;
-    scoreboard.setScore(TeamColor::BLUE, mmdata.ClanScores[1]);
-    scoreboard.setScore(TeamColor::RED, mmdata.ClanScores[2]);
+    scoreboard.setScores(mmdata.ClanScores[1], mmdata.ClanScores[2]);
 }
 
 
@@ -49,8 +51,9 @@ void monitorMatch() {
     if (currentMap != mapName) {
         if (currentMap != "") {
             scoreboard.reset();
+        } else {
+            loadScores();
         }
-        scoreboard.setWinning(TeamColor::NONE);
         currentMap = mapName;
         return;
     }
@@ -63,32 +66,32 @@ void monitorMatch() {
 
     // No team is "winning" between rounds, and we update the scores
     if (IsEndRound(app)) {
-        scoreboard.setWinning(TeamColor::NONE);
         loadScores();
-        return;
+        if (!justFinished) {
+            scoreboard.setPoints(0, 0);
+            return;
+        }
+        justFinished = false;
+    } else {
+        justFinished = true;
     }
 
     // Grab player positions and show who is currently winning the round
-    array<uint> scores = {0, 0};
+    array<uint> points = {0, 0};
     auto mlf = MLFeed::GetRaceData_V4();
     for (uint i = 0; i < mlf.SortedPlayers_Race.Length; i++) {
         uint score = 0;
         auto player = cast<MLFeed::PlayerCpInfo_V4>(mlf.SortedPlayers_Race[i]);
+        if (!player.PlayerIsRacing) continue;
         uint position = player.RaceRank - 1;
         if (pointRepartition.Length > 0) {
             score = position < pointRepartition.Length ? pointRepartition[position] : 0;
         } else {
             score = mlf.SortedPlayers_Race.Length - position;
         }
-        scores[player.TeamNum - 1] += score;
+        points[player.TeamNum - 1] += score;
     }
-    if (scores[TeamColor::BLUE] > scores[TeamColor::RED]) {
-        scoreboard.setWinning(TeamColor::BLUE);
-    } else if (scores[TeamColor::BLUE] < scores[TeamColor::RED]) {
-        scoreboard.setWinning(TeamColor::RED);
-    } else {
-        scoreboard.setWinning(TeamColor::NONE);
-    }
+    scoreboard.setPoints(points[TeamColor::BLUE], points[TeamColor::RED]);
 }
 
 

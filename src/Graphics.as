@@ -1,6 +1,7 @@
 
 // Using a font simlar to in-game stuff
 const int TEXT_FONT = nvg::LoadFont("assets/Montserrat-ExtraBold.ttf");
+const int LIGHT_FONT = nvg::LoadFont("assets/Montserrat-Medium.ttf");
 
 /**
  * Draw rectangle with rounded corners in the bottom half
@@ -17,8 +18,8 @@ void DrawHalfRoundedRectangle(float x, float y, float w, float h, float rbr, flo
 /**
  * Print text value
  */
-void DrawTextBox(const string &in val, float x, float y, float w, float size, vec4 color) {
-    nvg::FontFace(TEXT_FONT);
+void DrawTextBox(const string &in val, float x, float y, float w, float size, vec4 color, bool light = false) {
+    nvg::FontFace(light ? LIGHT_FONT : TEXT_FONT);
     nvg::FontSize(size);
     nvg::FontBlur(0.0);
     nvg::FillColor(color);
