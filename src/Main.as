@@ -44,9 +44,6 @@ void monitorMatch() {
         || !IsTeamsMode(app)
     ) return;
 
-    // Check if in warmup, we generally do no need to do anything here
-    if (IsInWarmup(app)) return;
-
     // If we changed track, we reset some stuff
     auto mapName = Text::StripFormatCodes(app.RootMap.MapName);
     if (currentMap != mapName) {
@@ -55,6 +52,12 @@ void monitorMatch() {
         }
         scoreboard.setWinning(TeamColor::NONE);
         currentMap = mapName;
+        return;
+    }
+
+    // Check if in warmup, we generally do no need to do anything here
+    if (IsInWarmup(app)) {
+        scoreboard.reset();
         return;
     }
 
