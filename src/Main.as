@@ -44,7 +44,11 @@ void monitorMatch() {
         app.CurrentPlayground is null
         || (app.CurrentPlayground.UIConfigs.Length < 1)
         || !IsTeamsMode(app)
-    ) return;
+    ) {
+        scoreboard.reset();
+        currentMap = "";
+        return;
+    };
 
     // If we changed track, we reset some stuff
     auto mapName = Text::StripFormatCodes(app.RootMap.MapName);
