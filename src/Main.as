@@ -2,13 +2,15 @@
 const string pluginName = Meta::ExecutingPlugin().Name;
 
 // Settings
-[Setting name="Blue Team Name" description="How the blue team is called"]
+[Setting name="Blue Team Name" description="How the blue team is called" category="General"]
 string blueTeamName = "";
-[Setting name="Red Team Name" description="How the red team is called"]
+[Setting name="Red Team Name" description="How the red team is called" category="General"]
 string redTeamName = "";
-[Setting name="Custom Point Repartition" description="Comma-separated list of points for each player position"]
+[Setting name="Custom Point Repartition" description="Comma-separated list of points for each player position" category="General"]
 string customPointRepartition = "";
-[Setting name="Polling Rate Milliseconds" description="How often the plugin checks for players positions" min=500]
+[Setting name="UI Scale" description="Adjust size of the scoreboard" category="General" min=0.1 max=3.0]
+float uiScaling = 1.0;
+[Setting name="Polling Rate Milliseconds" description="How often the plugin checks for players positions" category="General" min=500]
 int dataPollingRateMs = 1000;
 
 // Global stuff
@@ -88,6 +90,7 @@ void monitorMatch() {
 
 
 void OnSettingsChanged() {
+    uiScaling = Math::Round(uiScaling, 1);
     scoreboard.setName(TeamColor::BLUE, blueTeamName);
     scoreboard.setName(TeamColor::RED, redTeamName);
     if (customPointRepartition == "") {

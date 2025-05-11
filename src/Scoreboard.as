@@ -61,7 +61,7 @@ class TeamScoreboard {
     void draw() {
         // we scale stuff targetting X_SIZExY_SIZE on 1080p window
         int wWidth = Draw::GetWidth();
-        float scaling = Draw::GetHeight() / 1080.0;
+        float scaling = uiScaling * Draw::GetHeight() / 1080.0;
         vec2 size = vec2(X_SIZE * scaling, Y_SIZE * scaling);
         vec2 colorSize = vec2(size.x / 2 - PADDING, size.y - PADDING);
         float xpos = (wWidth - size.x) / 2;
