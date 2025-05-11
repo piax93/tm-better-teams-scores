@@ -22,7 +22,7 @@ TeamScoreboard@ scoreboard;
 void Render() {
     if (scoreboard is null) return;
     auto app = cast<CTrackMania>(GetApp());
-    if (!(IsInGame(app) && UI::IsGameUIVisible())) return;
+    if (!(UI::IsGameUIVisible() && IsInGame(app) && IsTeamsMode(app))) return;
     scoreboard.draw();
 }
 
