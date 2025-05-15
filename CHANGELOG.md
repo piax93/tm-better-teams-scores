@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0 - 2025-05-15
+
+* Add option to draw live race leaderboard
+* Use `RaceRespawnRank` to calculate race points (updates faster)
+* Ensure UI does not show up in MatchMaking
+* Better organize settings
+
+
 ## 0.2.0 - 2025-05-11
 
 * Add UI scaling setting

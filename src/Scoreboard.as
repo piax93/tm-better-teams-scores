@@ -2,25 +2,13 @@
  * Class implementing UI tracking teams scores
  */
 
-const vec4 TRANSPARENT_BLACK = vec4(0, 0, 0, 0.75);
-const vec4 INGAME_BLUE = vec4(0, 0, 0.941, 0.95);
-const vec4 INGAME_RED = vec4(0.941, 0, 0, 0.95);
-const vec4 DEFINITELY_WHITE = vec4(1 ,1 , 1, 1);
-const vec4 SORTOF_WHITE = vec4(1, 1, 1, 0.5);
+namespace Scoreboard {
 
 const float PADDING = 6;
 const float RECT_ROUNDING = 8;
 const float X_SIZE = 380;
 const float Y_SIZE = 120;
 const uint MAX_NAME_LEN = 11;
-
-
-enum TeamColor {
-    BLUE = 0,
-    RED = 1,
-    NONE = 2,
-}
-
 
 class TeamScoreboard {
 
@@ -77,7 +65,7 @@ class TeamScoreboard {
         // we scale stuff targetting X_SIZExY_SIZE on 1080p window
         int wWidth = Draw::GetWidth();
         float screenMiddle = wWidth / 2.0;
-        float scaling = uiScaling * Draw::GetHeight() / 1080.0;
+        float scaling = scoreboardScaling * Draw::GetHeight() / 1080.0;
         vec2 size = vec2(X_SIZE * scaling, Y_SIZE * scaling);
         vec2 colorSize = vec2(size.x / 2 - PADDING, size.y - PADDING);
         float xpos = (wWidth - size.x) / 2;
@@ -138,5 +126,7 @@ class TeamScoreboard {
             );
         }
     }
+
+}
 
 }

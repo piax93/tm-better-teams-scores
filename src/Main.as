@@ -2,23 +2,30 @@
 const string pluginName = Meta::ExecutingPlugin().Name;
 
 // Settings
-[Setting name="Blue Team Name" description="How the blue team is called" category="General"]
+[Setting name="Blue Team Name" description="How the blue team is called" category="Scoreboard"]
 string blueTeamName = "";
-[Setting name="Red Team Name" description="How the red team is called" category="General"]
+[Setting name="Red Team Name" description="How the red team is called" category="Scoreboard"]
 string redTeamName = "";
-[Setting name="Custom Point Repartition" description="Comma-separated list of points for each player position" category="General"]
+[Setting name="Custom Point Repartition" description="Comma-separated list of points for each player position (1 point diff each position by default)" category="Scoreboard"]
 string customPointRepartition = "";
-[Setting name="UI Scale" description="Adjust size of the scoreboard" category="General" min=0.1 max=3.0]
-float uiScaling = 1.0;
-[Setting name="Show Round Points" description="Shows sum of current round points" category="General"]
+[Setting name="Scoreboard Scale" description="Adjust size of the scoreboard" category="Scoreboard" min=0.1 max=3.0]
+float scoreboardScaling = 1.0;
+[Setting name="Show Round Points" description="Shows sum of current round points" category="Scoreboard"]
 bool showRoundPoints = false;
-[Setting name="Polling Rate Milliseconds" description="How often the plugin checks for players positions" category="General" min=500]
+
+[Setting name="Show Player Leaderboard" description="Shows live player leaderboard on the left (kind of experimental)" category="Leaderboard"]
+bool showPlayerLeaderboard = false;
+[Setting name="Leaderboard Scale" description="Adjust size of the leaderboard" category="Leaderboard" min=0.1 max=3.0]
+float leaderboardScaling = 1.0;
+
+[Setting name="Polling Rate Milliseconds" description="How often the plugin checks for players positions" category="Misc" min=500]
 int dataPollingRateMs = 1000;
 
 // Global stuff
 string currentMap = "";
 array<uint> pointRepartition;
-TeamScoreboard@ scoreboard;
+Scoreboard::TeamScoreboard@ scoreboard;
+Leaderboard::PlayerLeaderboard@ leaderboard;
 bool justFinished = true;
 
 
@@ -27,6 +34,7 @@ void Render() {
     auto app = cast<CTrackMania>(GetApp());
     if (!(UI::IsGameUIVisible() && IsInGame(app) && IsTeamsMode(app))) return;
     scoreboard.draw(showRoundPoints);
+    if (showPlayerLeaderboard) leaderboard.draw();
 }
 
 
@@ -71,6 +79,7 @@ void monitorMatch() {
     // No team is "winning" between rounds, and we update the scores
     if (IsEndRound(app)) {
         loadScores();
+        leaderboard.setSize(0);
         if (!justFinished) {
             scoreboard.setPoints(0, 0);
             return;
@@ -83,24 +92,30 @@ void monitorMatch() {
     // Grab player positions and show who is currently winning the round
     array<uint> points = {0, 0};
     auto mlf = MLFeed::GetRaceData_V4();
+    leaderboard.setSize(mlf.SortedPlayers_Race.Length);
     for (uint i = 0; i < mlf.SortedPlayers_Race.Length; i++) {
         uint score = 0;
         auto player = cast<MLFeed::PlayerCpInfo_V4>(mlf.SortedPlayers_Race[i]);
         if (!player.PlayerIsRacing) continue;
-        uint position = player.RaceRank - 1;
+        uint position = player.RaceRespawnRank - 1;
         if (pointRepartition.Length > 0) {
             score = position < pointRepartition.Length ? pointRepartition[position] : 0;
         } else {
             score = mlf.SortedPlayers_Race.Length - position;
         }
-        points[player.TeamNum - 1] += score;
+        int color = player.TeamNum - 1;
+        points[color] += score;
+        if (showPlayerLeaderboard) {
+            leaderboard.setPosition(position, player.Name, TeamColor(color), player.LastCpTime);
+        }
     }
     scoreboard.setPoints(points[TeamColor::BLUE], points[TeamColor::RED]);
 }
 
 
 void OnSettingsChanged() {
-    uiScaling = Math::Round(uiScaling, 1);
+    scoreboardScaling = Math::Round(scoreboardScaling, 1);
+    leaderboardScaling = Math::Round(leaderboardScaling, 1);
     scoreboard.setName(TeamColor::BLUE, blueTeamName);
     scoreboard.setName(TeamColor::RED, redTeamName);
     if (customPointRepartition == "") {
@@ -117,7 +132,8 @@ void OnSettingsChanged() {
 
 void Main() {
     DepCheck();
-    @scoreboard = TeamScoreboard(blueTeamName, redTeamName);
+    @leaderboard = Leaderboard::PlayerLeaderboard();
+    @scoreboard = Scoreboard::TeamScoreboard(blueTeamName, redTeamName);
     loadScores();
     while (true) {
         monitorMatch();

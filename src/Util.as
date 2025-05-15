@@ -1,4 +1,14 @@
 /**
+ * Just to make things more readable instead of 1s and 0s
+ */
+enum TeamColor {
+    BLUE = 0,
+    RED = 1,
+    NONE = 2,
+}
+
+
+/**
  * Log warning and show notification
  */
 void NotifyError(const string &in msg) {
@@ -52,10 +62,9 @@ bool IsInWarmup(CTrackMania@ app) {
  * Check if we are playing a mode with teams
  */
 bool IsTeamsMode(CTrackMania@ app) {
-    return !(
-        app.Network is null
-        || app.Network.ServerInfo is null
-    ) && cast<CTrackManiaNetworkServerInfo>(app.Network.ServerInfo).IsTeamMode;
+    if (app.Network is null || app.Network.ServerInfo is null) return false;
+    auto serverInfo = cast<CTrackManiaNetworkServerInfo>(app.Network.ServerInfo);
+    return serverInfo.IsTeamMode && serverInfo.CurGameModeStr != "TM_Teams_Matchmaking_Online";
 }
 
 
