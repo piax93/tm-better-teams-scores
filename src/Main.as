@@ -15,6 +15,8 @@ bool showRoundPoints = false;
 
 [Setting name="Show Player Leaderboard" description="Shows live player leaderboard on the left (kind of experimental)" category="Leaderboard"]
 bool showPlayerLeaderboard = false;
+[Setting name="Leaderboard Position" description="Adjust the leaderboard position" category="Leaderboard" min=0 max=100]
+float leaderboardYPositionPerc = 12;
 [Setting name="Leaderboard Scale" description="Adjust size of the leaderboard" category="Leaderboard" min=0.1 max=3.0]
 float leaderboardScaling = 1.0;
 
@@ -27,6 +29,8 @@ array<uint> pointRepartition;
 Scoreboard::TeamScoreboard@ scoreboard;
 Leaderboard::PlayerLeaderboard@ leaderboard;
 bool justFinished = true;
+uint activePlayers = 0;
+float leaderboardYPosition = leaderboardYPositionPerc * 1080 / 100.0;
 
 
 void Render() {
@@ -55,6 +59,7 @@ void monitorMatch() {
     ) {
         scoreboard.reset();
         currentMap = "";
+        activePlayers = 0;
         return;
     };
 
@@ -67,18 +72,21 @@ void monitorMatch() {
             loadScores();
         }
         currentMap = mapName;
+        activePlayers = 0;
         return;
     }
 
     // Check if in warmup, we generally do no need to do anything here
     if (IsInWarmup(app)) {
         scoreboard.reset();
+        activePlayers = 0;
         return;
     }
 
     // No team is "winning" between rounds, and we update the scores
     if (IsEndRound(app)) {
         loadScores();
+        activePlayers = 0;
         leaderboard.setSize(0);
         if (!justFinished) {
             scoreboard.setPoints(0, 0);
@@ -92,16 +100,23 @@ void monitorMatch() {
     // Grab player positions and show who is currently winning the round
     array<uint> points = {0, 0};
     auto mlf = MLFeed::GetRaceData_V4();
-    leaderboard.setSize(mlf.SortedPlayers_Race.Length);
+    if (activePlayers == 0) {
+        // SortedPlayers_Race includes spectators as well, so we need to calculate
+        // the count of players actually in the race manually
+        for (uint i = 0; i < mlf.SortedPlayers_Race.Length; i++) {
+            if (mlf.SortedPlayers_Race[i].PlayerIsRacing) activePlayers++;
+        }
+    }
+    leaderboard.setSize(activePlayers);
     for (uint i = 0; i < mlf.SortedPlayers_Race.Length; i++) {
         uint score = 0;
         auto player = cast<MLFeed::PlayerCpInfo_V4>(mlf.SortedPlayers_Race[i]);
-        if (!player.PlayerIsRacing) continue;
+        if (!player.PlayerIsRacing && !player.IsFinished) continue;
         uint position = player.RaceRespawnRank - 1;
         if (pointRepartition.Length > 0) {
             score = position < pointRepartition.Length ? pointRepartition[position] : 0;
         } else {
-            score = mlf.SortedPlayers_Race.Length - position;
+            score = Math::Max(activePlayers - position, 0);
         }
         int color = player.TeamNum - 1;
         points[color] += score;
@@ -116,6 +131,8 @@ void monitorMatch() {
 void OnSettingsChanged() {
     scoreboardScaling = Math::Round(scoreboardScaling, 1);
     leaderboardScaling = Math::Round(leaderboardScaling, 1);
+    leaderboardYPositionPerc = Math::Round(leaderboardYPositionPerc, 1);
+    leaderboardYPosition = leaderboardYPositionPerc * 1080 / 100.0;
     scoreboard.setName(TeamColor::BLUE, blueTeamName);
     scoreboard.setName(TeamColor::RED, redTeamName);
     if (customPointRepartition == "") {

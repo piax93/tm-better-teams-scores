@@ -8,7 +8,6 @@ const uint MAX_PLAYERS = 16;
 const uint MAX_NAME_SIZE = 14;
 const float Y_SIZE = 28;
 const float X_SIZE = 270;
-const float Y_POS = 120;
 const float TEXT_SIZE = 18;
 const float TEXT_PADDING = 6;
 
@@ -31,7 +30,7 @@ class PlayerLeaderboard {
     }
 
     void setPosition(uint pos, const string &in name, TeamColor color, int time) {
-        if (pos >= this.size) return;
+        if (pos >= this.size || pos >= this.names.Length) return;
         this.names[pos] = name;
         this.colors[pos] = color;
         this.times[pos] = time;
@@ -42,7 +41,7 @@ class PlayerLeaderboard {
         float scaling = leaderboardScaling * wHeight / 1080.0;
         float xSize = scaling * X_SIZE;
         float ySize = scaling * Y_SIZE;
-        float yPos = scaling * Y_POS;
+        float yPos = scaling * leaderboardYPosition;
         float fontSize = scaling * TEXT_SIZE;
         float padding = scaling * TEXT_PADDING;
         nvg::Reset();

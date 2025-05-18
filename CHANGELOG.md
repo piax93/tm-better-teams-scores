@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.1 - 2025-05-18
+
+* Fix score repartition calculation and leaderboard player count
+* Add leaderboard position setting
+
+
 ## 0.3.0 - 2025-05-15
 
 * Add option to draw live race leaderboard
