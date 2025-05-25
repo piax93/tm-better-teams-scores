@@ -2,7 +2,7 @@
 name     = "Better Teams Scores"
 author   = "MatP93"
 category = "Race"
-version  = "0.3.1"
+version  = "0.3.2"
 
 [script]
 dependencies = ["MLHook", "MLFeedRaceData"]

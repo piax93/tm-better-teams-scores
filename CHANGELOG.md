@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.2 - 2025-05-25
+
+* Fix cases when `TeamNum` has bad value
+
+
 ## 0.3.1 - 2025-05-18
 
 * Fix score repartition calculation and leaderboard player count

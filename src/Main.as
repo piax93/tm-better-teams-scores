@@ -111,14 +111,14 @@ void monitorMatch() {
     for (uint i = 0; i < mlf.SortedPlayers_Race.Length; i++) {
         uint score = 0;
         auto player = cast<MLFeed::PlayerCpInfo_V4>(mlf.SortedPlayers_Race[i]);
-        if (!player.PlayerIsRacing && !player.IsFinished) continue;
+        int color = player.TeamNum - 1;
+        if ((!player.PlayerIsRacing && !player.IsFinished) || color < 0 || color > 1) continue;
         uint position = player.RaceRespawnRank - 1;
         if (pointRepartition.Length > 0) {
             score = position < pointRepartition.Length ? pointRepartition[position] : 0;
         } else {
             score = Math::Max(activePlayers - position, 0);
         }
-        int color = player.TeamNum - 1;
         points[color] += score;
         if (showPlayerLeaderboard) {
             leaderboard.setPosition(position, player.Name, TeamColor(color), player.LastCpTime);
